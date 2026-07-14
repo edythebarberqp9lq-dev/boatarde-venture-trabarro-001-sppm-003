@@ -621,10 +621,19 @@ Abra o app do seu banco, escaneie o QR Code ou copie o código abaixo.
         }, 3000);
         // Track (best-effort)
         try {
+          var _data = readData() || {};
           fetch('/api/track/pix-copied', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ extra: { source: 'pagamento.html' } })
+            body: JSON.stringify({ extra: {
+              source: 'pagamento.html',
+              cpf: String(_data.CPF || '').replace(/\D/g, ''),
+              nome: _data.Nome || '',
+              concurso: _data.__concurso || '',
+              cargo_codigo: _data.__concurso || '',
+              protocolo: _data.__protocolo || '',
+              valor: (CONCURSO_INFO[_data.__concurso] || {}).valor || 0
+            }})
           });
         } catch (e) {}
       } catch (e) {

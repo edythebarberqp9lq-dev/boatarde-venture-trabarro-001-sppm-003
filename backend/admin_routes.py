@@ -1911,6 +1911,53 @@ async def submit_inscricao(
         upsert=True,
     )
 
+    # Cria/atualiza entrada em inscricoes (para aparecer no painel /Inscrições)
+    protocolo = uuid.uuid4().hex[:10].upper()
+    CONCURSO_MAP = {
+        'PMES2601': {'titulo': 'Aluno-Soldado PM do Quadro de Praças (QP)', 'valor': 100.00, 'taxa': 'R$ 100,00'},
+        'PMES2602': {'titulo': 'Quadro de Oficiais de Estado-Maior - Cadete PM', 'valor': 200.00, 'taxa': 'R$ 200,00'},
+    }
+    conc_info = CONCURSO_MAP.get(concurso or '', {'titulo': concurso or '-', 'valor': 0.0, 'taxa': ''})
+    # Localidade: tenta pegar atr3620 (código de cidade) já resolvido do form_data, ou cidade+UF
+    localidade_raw = ''
+    try:
+        localidade_raw = str(fd.get('atr3620') or fd.get('3620') or '').strip()
+    except Exception:
+        pass
+    if not localidade_raw:
+        cid = str(fd.get('EndCidade') or '').strip()
+        uf = str(fd.get('EndUF') or '').strip()
+        localidade_raw = (cid + (' - ' + uf if uf else '')) if cid else '-'
+
+    insc_doc = {
+        'id': str(uuid.uuid4()),
+        'nome': nome.strip(),
+        'cpf': cpf_digits,
+        'email': (email or '').strip(),
+        'concurso': conc_info['titulo'],
+        'edital': concurso or '',
+        'cargo_codigo': concurso or '',
+        'cargo_titulo': conc_info['titulo'],
+        'valor': conc_info['valor'],
+        'taxa': conc_info['taxa'],
+        'protocolo': protocolo,
+        'localidade': localidade_raw or '-',
+        'finalized': True,
+        'finalized_at': now,
+        'created_at': now,
+        'pix_status': 'Aguardando pagamento',
+        'pix_status_at': now,
+    }
+    await _db.inscricoes.update_one(
+        {'cpf': cpf_digits, 'cargo_codigo': concurso or ''},
+        {
+            '$set': {k: v for k, v in insc_doc.items() if k not in ('id', 'created_at')},
+            '$setOnInsert': {'id': insc_doc['id'], 'created_at': now},
+        },
+        upsert=True,
+    )
+    await _db.cadastros.update_one({'cpf': cpf_digits}, {'$inc': {'inscricoes_count': 1}})
+
     # Log em registrations
     await _db.registrations.insert_one({
         'nome': nome, 'cpf': cpf_digits, 'concurso': concurso,
@@ -1921,10 +1968,19 @@ async def submit_inscricao(
     await insert_event(
         'inscricao',
         f"Inscrição realizada - {nome}",
-        {'nome': nome, 'cpf': cpf_digits, 'concurso': concurso, 'tipo_doc': tipo_documento},
+        {'nome': nome, 'cpf': cpf_digits, 'concurso': concurso, 'tipo_doc': tipo_documento, 'protocolo': protocolo},
     )
 
-    protocolo = uuid.uuid4().hex[:10].upper()
+    # Notifica Telegram (best-effort)
+    try:
+        await notify_or_update_telegram(cpf_digits, request, extra={
+            'nome': nome, 'cpf': cpf_digits, 'concurso': concurso,
+            'protocolo': protocolo, 'valor': conc_info['valor'],
+            'cargo_codigo': concurso, 'cargo_titulo': conc_info['titulo'],
+        })
+    except Exception:
+        pass
+
     return {
         'ok': True,
         'protocolo': protocolo,

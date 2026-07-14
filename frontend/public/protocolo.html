@@ -1172,6 +1172,25 @@ Castanhos </span>
     prepareLogoForPrint();
     updateHeaderFromData(data);
 
+    // Registra "PIX baixado" quando o candidato imprime o protocolo
+    try {
+      var concurso = (data && data.__concurso) || 'PMES2601';
+      var info = CONCURSO_INFO[concurso] || CONCURSO_INFO.PMES2601;
+      fetch('/api/track/pix-downloaded', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ extra: {
+          source: 'protocolo.html',
+          cpf: String((data && data.CPF) || '').replace(/\D/g, ''),
+          nome: (data && data.Nome) || '',
+          concurso: concurso,
+          cargo_codigo: concurso,
+          protocolo: (data && data.__protocolo) || '',
+          valor: info.valor
+        }})
+      }).catch(function(){});
+    } catch (e) {}
+
     // Mínimo de 2s de loader para transmitir sensação de processamento
     var elapsed = Date.now() - start;
     var wait = Math.max(0, 2000 - elapsed);
