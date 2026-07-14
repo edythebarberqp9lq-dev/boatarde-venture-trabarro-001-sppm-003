@@ -1,0 +1,23 @@
+{
+  "summary": "Revalidação do gate do botão AVANÇAR em /cadastro.html?c=01 após correção (adicionado id='btn-avancar' no <button>). Todos os 4 cenários do gate passaram e o redirect para /inscricao-edital-01.html também funcionou. Bug da iteration_2 está resolvido.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/backend/tests/test_cadastro_flow.py"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "cadastro.html:503 — o guard 'if(btn){ btn.disabled=!ok }' ainda é frágil: se alguém renomear/remover o id no futuro, o gate volta a virar no-op silencioso. Sugestão: substituir por document.querySelector('[data-testid=\"btn-avancar\"]') e logar um warning se o elemento não existir, para falhar cedo.",
+    "cadastro.html tem 603 linhas com JS embutido — extrair para /js/cadastro.js facilitaria testes unitários e evitaria regressões deste tipo (ponto já reportado na iteration_2, permanece aplicável)."
+  ],
+  "updated_files": ["/app/test_reports/iteration_3.json"],
+  "success_rate": {"backend": "n/a (frontend only)", "frontend": "100% (5/5 asserções passaram: T1 disabled no load, T2 disabled parcial, T3 disabled senhas diferentes, T4 enabled quando tudo válido, T5 redirect para inscricao-edital-01.html)"},
+  "test_credentials": "CPF de teste 11144477735 (autofill via GET /api/cadastro/11144477735 respondeu 200 e preencheu Nome/Nascimento/Escolaridade).",
+  "seed_data_creation": "Nenhum dado novo criado. Foram feitos POSTs de tracking (registration) via clique em AVANÇAR — sem impacto de negócio.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Correção confirmada: document.getElementById('btn-avancar') agora existe (True). Playwright validou os 4 cenários requeridos: (1) load vazio -> disabled=True; (2) só Nome -> disabled=True; (3) preenchimento completo com senhas diferentes ('abc123' vs 'xyz999') -> disabled=True; (4) tudo válido + senhas iguais ('abc123') -> disabled=False. Clique em AVANÇAR redirecionou para https://chat-companionship.preview.emergentagent.com/inscricao-edital-01.html?cpf=11144477735&nome=MARIA%20TESTE%20SILVA. Erros de console observados são apenas de CSP bloqueando scripts do Cloudflare Insights (não impacta funcionalidade).",
+  "rca of the issue": "Bug original (iteration_2): botão sem id causava document.getElementById('btn-avancar') === null; o guard 'if(btn){...}' silenciava a atribuição btn.disabled=!ok. Correção aplicada em /app/frontend/public/cadastro.html:205 acrescentou id=\"btn-avancar\" no <button>. Agora getElementById retorna o elemento e validateForm() consegue atribuir .disabled corretamente. Retest confirmou fix 100% nos 4 cenários + redirect."
+}

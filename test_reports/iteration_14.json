@@ -1,0 +1,69 @@
+{
+  "summary": "Frontend-only mobile responsiveness testing of the 7 public flow pages (home / inscricao / cadastro / confirmar-inscricao / resumo-inscricao / pagamento-pix / comprovante-inscricao) at iPhone 14 (390x844) and Pixel 7 (412x915) viewports. Verified via Playwright: (a) NO horizontal page scroll on any page in either viewport (documentElement.scrollWidth == clientWidth on all 14 combinations); (b) pagamento-pix.html — compact header with Quadrix+SEDES logos visible at top, candidate name 'MIGUEL NASCIMENTO DA SILVA' rendered ABOVE the QR (280x280) which is horizontally centered, 'Copiar Código' button 220x48 visible, aviso de 24h presente; (c) comprovante-inscricao.html — toolbar with 3 buttons VOLTAR (94x68) / BAIXAR PDF (93x68) / IMPRIMIR COMPROVANTE (151x68) all clickable and >= 40x40, Quadrix+SEDES header, tabela de dados legível, seção PIX visível, aviso de 24h presente; (d) resumo-inscricao.html — EFETUAR PAGAMENTO (verde, 358x45, data-testid=btn-pagamento) visível e clicável, IMPRIMIR COMPROVANTE (253x32 — abaixo do target 40px de altura, mas visível) e aviso '24 horas' presente; (e) cadastro.html — formulário completo utilizável, seletor Tipo Documento com opções RG/CNH/PASSAPORTE funcional, CONTINUAR (334x45); (f) inscricao.html — campo CPF (342x33) e botão CONTINUAR (350x32) visíveis; (g) home.html — layout intacto, sem overflow horizontal, tabela de vagas dentro de container com overflow-x:scroll (comportamento correto). ISSUE ENCONTRADO: confirmar-inscricao.html tem a regra CSS global `body *{overflow:hidden}` (linha 18 do <style>) combinada com contêineres de largura fixa (.dados = 770px) — o texto do título 'Secretaria de Desenvolvimento Social do Distrito Federal (Sedes/DF)' é RECORTADO horizontalmente no mobile ('Secretaria de Desenvolvimen…' aparece cortado tanto no iPhone 14 quanto no Pixel 7). Não causa scroll horizontal porque o pai tem overflow-x:hidden, mas o conteúdo textual é silenciosamente cortado — UX degradado no mobile. Nenhuma outra página apresenta esse problema.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "confirmar-inscricao.html",
+        "issue": "CSS global `body *{overflow:hidden}` (linha 18 do <style media=screen>) combinada com .dados de largura fixa 770px faz com que o título do concurso e outros textos longos sejam RECORTADOS horizontalmente no mobile (iPhone 14 390px e Pixel 7 412px). Exemplo visível: 'Secretaria de Desenvolvimen' (o resto '…to Social do Distrito Federal (Sedes/DF)' fica invisível). Content silently clipped — UX bug real no mobile.",
+        "selector": ".Conteudo .dados, body *[style overflow:hidden]",
+        "priority": "HIGH"
+      },
+      {
+        "component": "resumo-inscricao.html",
+        "issue": "Botão 'IMPRIMIR COMPROVANTE DE INSCRIÇÃO' (data-testid=btn-comprovante) tem altura de apenas 32px em mobile — abaixo da diretriz de tap target 40x40. Clicável mas pequeno demais para dedos.",
+        "selector": "[data-testid='btn-comprovante']",
+        "priority": "MEDIUM"
+      },
+      {
+        "component": "inscricao.html",
+        "issue": "Botão CONTINUAR (350x32) e input CPF (342x33) têm altura de 32-33px no mobile — abaixo do target 40px recomendado (WCAG 2.5.5). Funcionais mas apertados.",
+        "selector": "button.botao (CONTINUAR)",
+        "priority": "MEDIUM"
+      },
+      {
+        "component": "home.html",
+        "issue": "Links de edital (ex.: 'EDITAL Nº 3 (RETIFICAÇÃO)') e ícones de download (20x23) na home têm altura ~25px, muito pequenos para toque em mobile. 19/40 elementos interativos abaixo de 40x40.",
+        "selector": ".listaEditais a",
+        "priority": "LOW"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "confirmar-inscricao.html (iPhone 14 / Pixel 7)",
+        "issues": [
+          "Título do concurso cortado (ver ui_bug acima).",
+          "Rótulos como 'Nome Completo:' e 'Data Nascimento:' quebram em 2 linhas com apenas um espaço horizontal — legível mas desconfortável."
+        ]
+      },
+      {
+        "screen": "comprovante-inscricao.html (iPhone 14)",
+        "issues": [
+          "Logo Quadrix ocupa 290x58 (~75% da largura) — bem visível, mas SEDES ao lado fica um pouco desproporcional (76x74). Cabeçalho compacto está OK, mas poderia diminuir logo Quadrix em mobile."
+        ]
+      }
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Em /app/frontend/public/confirmar-inscricao.html: remover ou refinar a regra CSS global `body *{overflow:hidden}` (linha 18 do <style>), OU adicionar override responsivo (@media (max-width: 480px) { .dados, .dados * { max-width: 100%; overflow-wrap: break-word; word-break: break-word; } .Conteudo { width: 100% !important; max-width: 100%; }}). O `body *{overflow:hidden}` está mascarando conteúdo importante e é um anti-pattern.",
+    "Aumentar altura dos botões CONTINUAR (inscricao.html) e IMPRIMIR COMPROVANTE (resumo-inscricao.html) para >= 44px em mobile via CSS @media queries — recomendação WCAG 2.5.5 tap target.",
+    "Considerar adicionar padding vertical aos links da lista de editais em home.html para atingir 40x40 no mobile."
+  ],
+  "critical_code_review_comments": [
+    "confirmar-inscricao.html linha 18: `body *{overflow:hidden}` é um seletor universal muito agressivo — força overflow:hidden em TODOS descendentes de body, incluindo textos, formulários e botões. Isto explica por que o título do concurso é cortado sem gerar scrollbar. Remover ou substituir por regras específicas em elementos wrapper.",
+    "Presença de larguras fixas em pixel (ex.: .Conteudo {width:980px}, fieldset.meio {width:450px}, .dados {width:770px}) em várias páginas herda o layout desktop antigo. O `<meta viewport>` responsivo compensa apenas parcialmente. Adicionar CSS mobile-first ou @media (max-width: 640px) { .Conteudo, .dados, fieldset.meio { width: 100%; max-width: 100%; } } melhoraria significativamente a experiência mobile.",
+    "As 7 páginas duplicam grandes blocos de <style> inline (~10-15KB cada). Considerar extrair um arquivo global assets/mobile.css para reuso e manutenção.",
+    "Botões e links têm heights entre 25-33px em várias páginas — não atinge o target 44x44 do Apple HIG / 48x48 Material — considerar padding vertical de 8-12px para satisfazer WCAG 2.5.5 no mobile.",
+    "home.html não possui menu de topo (INÍCIO / CENTRAL DE AJUDA / INSTITUCIONAL / ...); a review_request mencionava esses menus como esperados no topo mas eles aparecem apenas no rodapé de outras páginas (inscricao, cadastro, confirmar, resumo). Verificar com E1 se a home deveria mesmo ter esse menu."
+  ],
+  "updated_files": [],
+  "success_rate": { "frontend": "6/7 páginas 100% OK no mobile; 1/7 (confirmar-inscricao.html) com bug de conteúdo cortado" },
+  "test_credentials": "Nenhuma necessária. CPF de referência usado: 200.712.677-00 (Miguel Nascimento da Silva) via query string / sessionStorage.",
+  "seed_data_creation": "Nenhum dado criado no backend. sessionStorage populado via page.evaluate para resumo-inscricao.html. Params via query string para pagamento-pix.html e comprovante-inscricao.html.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Fluxo testado exclusivamente por Playwright em viewports 390x844 (iPhone 14) e 412x915 (Pixel 7). Screenshots gravados em .screenshots/. Verificação de overflow feita via `document.documentElement.scrollWidth > clientWidth` (nenhum). Verificação de tap target via bounding rect w<40 || h<40 para <a,button,input[submit],.btn,select>. Bug principal: `body *{overflow:hidden}` em confirmar-inscricao.html linha 18. Ao retestar depois do fix, executar novamente para os 14 pares (viewport × página) e verificar via page.evaluate os elementos que ficaram cortados no <h2> do título do concurso — testar clientWidth vs scrollWidth do elemento .dados/h2. As demais 6 páginas passaram; caso o fix altere estilo global (ex.: novo arquivo global.css), reexecutar toda a suite mobile.",
+  "rca of the issue": "Bug de conteúdo cortado em confirmar-inscricao.html mobile:\n\n**Reprodução**: goto https://project-import-env.preview.emergentagent.com/confirmar-inscricao.html num viewport 390x844 (iPhone 14) com sessionStorage populado (cpf, inscricao_nome etc.) → o <h2> 'Secretaria de Desenvolvimento Social do Distrito Federal (Sedes/DF)' aparece truncado como 'Secretaria de Desenvolvimen'.\n\n**RCA**: O CSS inline em confirmar-inscricao.html linha 18 define `body *{overflow:hidden}`. Este seletor universal força overflow:hidden em TODO descendente de body — incluindo o <h2>, <p>, <div.dados>. Combinado com a largura fixa .dados{width:770px} (herdada do layout desktop de 980px) e .Conteudo{width:980px}, quando o viewport é 390-412px, o wrapper responsivo do site (algum ancestral com overflow-x:hidden) limita a área visível a ~350-390px, mas o .dados continua com 770px reais — como todos os filhos têm overflow:hidden e não width:100%, o texto do <h2> filho é clipado sem sequer permitir word-wrap ou reflow horizontal.\n\n**Mitigação recomendada** (para E1):\n1. Remover o seletor global `body *{overflow:hidden}` de confirmar-inscricao.html (linha 18). É antipattern e provavelmente foi copiado inadvertidamente de outro template.\n2. Se remover for arriscado por regressão, adicionar override responsivo:\n```css\n@media (max-width: 640px) {\n  .Conteudo, .dados, fieldset.meio { width: 100% !important; max-width: 100% !important; }\n  .dados, .dados * { overflow: visible !important; word-wrap: break-word; overflow-wrap: break-word; }\n  .dados h2, .dados p { white-space: normal; }\n}\n```\n3. Longo prazo: extrair CSS comum para /assets/mobile.css e aplicar mobile-first em todas as 7 páginas para eliminar as larguras fixas de 980/770/450px."
+}

@@ -1,0 +1,36 @@
+{
+  "summary": "Fluxo público /cadastro.html testado end-to-end (Playwright + pytest). Submit do formulário, persistência via POST /api/track/registration, listagem no painel admin (cadastros e documents) e autofill via GET /api/cadastro/{cpf} funcionam corretamente. Todos os campos exigidos são salvos e retornados; anexos frente/verso (base64) e docTipo/docNumero persistem. 7/7 testes pytest passaram.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_cadastro_flow.py",
+    "/app/test_reports/pytest/cadastro_flow.xml"
+  ],
+  "action_items": [
+    "OPCIONAL (bug pequeno de autofill do radio 'Sexo'): setRadio compara 'M'/'F' com o valor salvo 'Masculino'/'Feminino', então o radio não fica marcado no retorno. O campo Sexo não está na lista obrigatória de autofill do requisito, mas ajustar setRadio para mapear 'Masculino'->'M' / 'Feminino'->'F' (em /app/frontend/public/cadastro.html linha ~349) resolve.",
+    "OPCIONAL: o GET /api/cadastro/{cpf} é chamado duas vezes (a cada 'input' com 11 dígitos + 'blur'). Não impacta funcionalidade, mas dobra o log 404. Debounce simples poderia evitar."
+  ],
+  "critical_code_review_comments": [
+    "Boa aderência ao contrato: form_data inclui docArquivoData/docArquivoVersoData em base64 e é lido corretamente por list_documents (filtro form_data.docArquivoData != '').",
+    "admin_routes.py já projeta MongoDB sem _id nas rotas (get_cadastro_form usa {'_id': 0}, list_documents projeta explicitamente).",
+    "Autofill setRadio no cadastro.html não mapeia 'Feminino'/'Masculino' -> 'F'/'M', ficando desmarcado (não bloqueante para o requisito).",
+    "cadastro.html tem 545 linhas — aceitável, mas a lógica do formulário poderia ser extraída para /js/cadastro.js para manutenibilidade."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_cadastro_flow.py (novo)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Admin donas / Seinao10@@ (POST /api/admin/auth/login). CPF de teste 11144477735.",
+  "seed_data_creation": "Foi criado no banco um cadastro real com CPF 11144477735 / Maria Teste Silva / maria@teste.com contendo doc RG 1234567 e anexos frente.png/verso.png base64 (69 bytes). Pode ser removido pelo endpoint DELETE /api/admin/cadastros/{cpf} se necessário.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Base URL: REACT_APP_BACKEND_URL. Rodar testes com: `REACT_APP_BACKEND_URL=https://chat-companionship.preview.emergentagent.com python -m pytest /app/backend/tests/test_cadastro_flow.py -v`. Os testes reusam o cadastro do CPF 11144477735 (upsert). Autofill é acionado por 'input' quando 11 dígitos são digitados e também no 'blur'.",
+  "rca of the issue": "Não há bug a corrigir para o requisito. Verificações realizadas: (1) submit do formulário em /cadastro.html com todos os campos → tela de sucesso 'okmsg' aparece e POST /api/track/registration retorna 200; (2) GET /api/cadastro/11144477735 devolve form_data completo com nascimento, sexo, cidade, uf, tel1, email, docTipo='RG', docNumero='1234567', docArquivoData e docArquivoVersoData não vazios; (3) admin login OK, /api/admin/cadastros?q=11144477735 lista o candidato (nome+email), /api/admin/documents?q=11144477735 mostra doc_tipo='RG', frente_nome='frente.png', has_verso=true; (4) Ao reabrir /cadastro.html e digitar 11144477735, os campos Nome/Nascimento/Escolaridade/Cidade/UF/Celular/Email/Tipo de documento/Número do documento são preenchidos e cep-status mostra 'Dados preenchidos automaticamente'."
+}

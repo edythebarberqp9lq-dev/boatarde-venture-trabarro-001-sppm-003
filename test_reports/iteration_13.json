@@ -1,0 +1,30 @@
+{
+  "summary": "Verified the admin login bug fix. Backend POST /api/admin/auth/login with farpa/Ads102030 returns 200 + valid JWT + user object; wrong password returns 401; unknown user returns 401; old 'donas' admin no longer exists in DB (401). Authenticated calls to protected routes (/api/admin/auth/me, /api/admin/admins, /api/admin/dashboard/kpis) succeed with the Bearer token; without a token or with an invalid token they return 401. Frontend HashRouter login at /farpainel/#/login also passes end-to-end: form fields USUÁRIO (data-testid=admin-login-username) and SENHA (data-testid=admin-login-password) accept the credentials, Entrar (data-testid=admin-login-submit) submits, the app navigates to /farpainel/#/dashboard, localStorage['donas_admin_token'] is populated with a valid farpa JWT, sidebar shows 'farpa (root) - Administrador', no 'Credenciais inválidas' message is displayed, and the Dashboard renders KPIs + Funil de conversão + Atividade widgets. 9/9 pytest cases pass.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      { "screen": "/farpainel/#/login (any page mounting Recharts before layout)", "issues": ["Console shows repeated recharts warning: 'The width(-1) and height(-1) of chart should be greater than 0'. Cosmetic only — no functional impact — but pollutes console. Consider gating chart render on a ready flag or wrapping in ResponsiveContainer with an explicit minWidth/minHeight."] }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_admin_auth_login.py",
+    "/app/test_reports/pytest/admin_auth_login.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "admin_routes.py lines 25-26: hardcoded fallback credentials `ADMIN_USERNAME='donas'` / `ADMIN_PASSWORD='Seinao10@@'` are used when env is missing. This is a security smell — a container without env config would seed a well-known admin. Recommend failing fast (raise on startup) if ADMIN_USERNAME/ADMIN_PASSWORD are not set, or at minimum use a random password fallback.",
+    "seed_admin() only creates the admin whose username matches the current env var. It does NOT remove/rotate admins seeded under previous ADMIN_USERNAME values. In this session that cleanup was done manually via MongoDB. Consider documenting or scripting this in seed_admin() (e.g., mark legacy 'root' admins as inactive when the configured username changes).",
+    "JWT_SECRET defaults to the literal string 'change-me' (admin_routes.py line 22). If JWT_SECRET is not set in .env in production, tokens can be forged. Should fail startup if missing.",
+    "The frontend still uses the localStorage key 'donas_admin_token' — carrying over the old brand name. Non-blocking, but consider renaming to something neutral (e.g., 'admin_token') for clarity now that the admin is 'farpa'."
+  ],
+  "updated_files": ["/app/backend/tests/test_admin_auth_login.py"],
+  "success_rate": { "backend": "100% (9/9 pytest)", "frontend": "100% (login → dashboard flow verified)" },
+  "test_credentials": "Admin: farpa / Ads102030 (via /app/memory/test_credentials.md, seeded through /app/backend/.env)",
+  "seed_data_creation": "None. Relied on the seed_admin() startup hook which re-created the 'farpa' admin after the E1 fix.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Regression suite at /app/backend/tests/test_admin_auth_login.py covers login success (JWT structure + user payload), wrong password 401, unknown user 401, old 'donas' 401, /api/admin/auth/me, /api/admin/admins list (farpa present), unauthenticated 401, invalid token 401, and /api/admin/dashboard/kpis authenticated. Run: `pytest /app/backend/tests/test_admin_auth_login.py -v -o 'addopts=' --junitxml=/app/test_reports/pytest/admin_auth_login.xml` (the -o 'addopts=' is required because the project's pytest.ini enables xdist which conflicts with class-scoped fixtures). Frontend admin login form testids: admin-login-username, admin-login-password, admin-login-submit. Token key in localStorage: 'donas_admin_token'. Admin panel is served at /farpainel/#/... (HashRouter).",
+  "rca of the issue": "Original bug: user could not log into /farpainel/#/login with farpa/Ads102030 — got 'Credenciais inválidas'. RCA: the cloned repo shipped with ADMIN_USERNAME='donas' / ADMIN_PASSWORD='Seinao10@@' hardcoded fallbacks in admin_routes.py, and seed_admin() had inserted 'donas' into MongoDB on first startup. When the user tried 'farpa' the DB lookup returned None → 401. Fix by E1: (1) added ADMIN_USERNAME=farpa and ADMIN_PASSWORD=Ads102030 to /app/backend/.env; (2) deleted the old 'donas' document from the admins collection; (3) restarted supervisor so that seed_admin() re-ran on startup and inserted the bcrypt-hashed 'farpa' admin. Verification: (a) POST /api/admin/auth/login farpa/Ads102030 → 200 + JWT (verified via curl and pytest); (b) old 'donas' credentials → 401 (confirmed 'donas' really removed); (c) Playwright end-to-end confirmed the browser flow: form submit → HashRouter redirect to /dashboard → localStorage.donas_admin_token populated → sidebar 'farpa (root)'. No further mitigation needed for this session."
+}

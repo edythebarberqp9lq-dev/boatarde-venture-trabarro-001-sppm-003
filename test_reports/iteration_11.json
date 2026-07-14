@@ -1,0 +1,32 @@
+{
+  "summary": "Verified PIX tracking flow end-to-end. Backend endpoints /api/track/pix-generated and /api/track/pix-copied correctly upsert _db.inscricoes.pix_status ('PIX gerado' then 'PIX copiado'), insert pix_generated/pix_copied events and increment KPIs (pix_gerados, pix_copiados). Frontend pagamento.html was intercepted with a real browser (Playwright request listener): the trackEvent POST to /api/track/pix-generated fires automatically after QR is rendered by /api/pix/generate, and the POST to /api/track/pix-copied fires on click of #pgto-copiar. All 4 pytest cases pass.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "pagamento.html", "issues": [
+        "Vaga label renders as '—' instead of the selected cargo_titulo when arriving via seeded storage (does not read cargo_titulo/vaga from vaga_data). Not part of this task's scope but worth noting to main agent.",
+        "Valor shown is R$ 100,00 even when vaga_data has valor:110 — the page appears to prefer a value fetched from another source (settings/pix-config) rather than vaga_data.valor. Also outside this task; pix_status tracking works regardless."
+      ]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_pix_tracking_flow.py",
+    "/app/test_reports/pytest/pix_tracking.xml"
+  ],
+  "action_items": [
+    "(Optional) Fix pagamento.html to display Vaga (cargo_titulo) and correct Valor (from vaga_data.valor) — unrelated to the tracking task but visible during manual QA."
+  ],
+  "critical_code_review_comments": [
+    "pagamento.html is a huge SingleFile HTML export (~big file). The tracking wire-up (trackEvent) is embedded near the bottom of the file — consider extracting the JS into /public/js/pagamento.js for maintainability, but not blocking.",
+    "admin_routes.py track_pix_gen and track_pix_copied are near-duplicates (~40 lines each) — could be DRY'd into a single helper parametrized by status/collection."
+  ],
+  "updated_files": ["/app/backend/tests/test_pix_tracking_flow.py"],
+  "success_rate": {"backend": "100% (4/4 pytest)", "frontend": "100% (both trackEvent POSTs verified via Playwright request interception)"},
+  "test_credentials": "Admin: donas / Seinao10@@. CPF de teste: 11144477735.",
+  "seed_data_creation": "Cleared MongoDB collections (inscricoes, cadastros, pix_generated, pix_copied, pix_downloaded, events, registrations) before running tests. The pytest suite auto-seeds a finalized inscricao via POST /api/track/registration for CPF 11144477735 (JOAO SILVA TESTE / AGENTE_ADM / R$110).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Regression tests at /app/backend/tests/test_pix_tracking_flow.py cover: (1) POST /api/track/pix-generated → inscricao.pix_status='PIX gerado'; (2) POST /api/track/pix-copied → 'PIX copiado'; (3) KPIs pix_gerados>=1 and pix_copiados>=1; (4) pagamento.html served by public folder contains the trackEvent URLs and #pgto-copiar id. Frontend integration verified live via Playwright request interception — pagamento.html reads cadastro_data & vaga_data from sessionStorage (mirrored to localStorage from resumo-inscricao.html)."
+}

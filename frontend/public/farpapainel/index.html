@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Redirecionando…</title>
+    <script>
+      // Preserva o hash (#/dashboard, #/login etc.) durante o redirect
+      var hash = window.location.hash || "";
+      window.location.replace("/farpainel/" + hash);
+    </script>
+  </head>
+  <body>
+    <p style="font-family:system-ui,sans-serif;text-align:center;margin-top:40px;color:#666">
+      Redirecionando para <a href="/farpainel/">/farpainel/</a>…
+    </p>
+  </body>
+</html>

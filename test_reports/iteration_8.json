@@ -1,0 +1,28 @@
+{
+  "summary": "Frontend E2E test of Araguaína inscription flow (edital 01) end-to-end. Verified: (a) finalizing inscription via BTN_Avancar creates the inscription in admin panel with status 'Aguardando pagamento' and valor R$160,00; (b) KPI 'Inscrições' incremented (=1); (c) navigation to minhas-inscricoes.html opens the correct page bound by protocolo; (d) 'Pagar inscrição' generates PIX (QR + copia-e-cola) and sets status 'PIX gerado'; (e) 'Copiar código PIX' → status 'PIX copiado'; (f) 'Baixar QR Code' → status 'PIX baixado'. Full status sequence validated via GET /api/admin/inscriptions?q=05898039058.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "admin_routes.py is very large (>1000 lines): split into modules (auth, tracking, dashboard, cadastros, documents, pix, telegram) for maintainability.",
+    "In track_pix_generated/copied/downloaded (lines 419-540) there's ~120 lines of duplicated code (fetching inscricao, computing valor/nome/concurso, upserting). Extract into a helper e.g. _track_pix_event(collection, status, extra).",
+    "minhas-inscricoes.html Baixar QR anchor uses `data:image/png;base64,...` href — Chromium/Chrome may open the QR inline instead of emitting a native download event (worked in this test via download attribute but Playwright's download event never fired). Consider using Blob URL created via URL.createObjectURL for more reliable cross-browser downloads.",
+    "CSP is being violated on multiple pages by Cloudflare beacon script (console errors observed). Non-blocking for functionality but should be reviewed."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "donas / Seinao10@@ (from /app/memory/test_credentials.md). PIX config already present: pix_key=teste@araguaina.com.br, nome=PREFEITURA ARAGUAINA, cidade=ARAGUAINA.",
+  "seed_data_creation": "One inscription created during the test for CPF 05898039058 (MARIA EDUARDA DANIEL MACHADO), cargo COD 01100, valor R$160, protocolo dynamic. Left in DB (finalized=true, pix_status=PIX baixado) so main agent can verify via admin panel; delete via DELETE /api/admin/inscriptions/{id} if cleanup is desired.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Full inscription→PIX flow is functional in edital 01. Editais 02/03/04 share the same insc-modal-js block so should behave identically. If retesting: (1) clear via /api/admin/inscriptions/clear-all; (2) hit /inscricao-edital-0X.html with cpf/nome query, dispatch change on #CMB_Cargo after picking a value != -1, check #CHK_AceitoRequerimento, click #BTN_Avancar; (3) OK on modal navigates with protocolo; (4) Pagar → Copiar → Baixar. Verify GET /api/admin/inscriptions?q=<cpf>.",
+  "rca of the issue": "N/A — original bug ('inscrição não era criada no painel') is FIXED. The current code posts /api/track/registration with stage=inscricao_finalizada from insc-modal-js before opening the modal, and admin_routes.py:track_registration handles finalized=True by upserting inscricoes with pix_status='Aguardando pagamento'. Status transitions are driven by _upsert_pix_status (cpf+protocolo → cpf+cargo_codigo fallback → most-recent-by-cpf fallback), which matched correctly in the test."
+}

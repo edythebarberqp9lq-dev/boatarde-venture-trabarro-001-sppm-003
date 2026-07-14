@@ -1,0 +1,23 @@
+{
+  "summary": "Full E2E validation of the Araguaína/IDIB static-portal flow after the logo/PIX-value fixes. Verified: (1) inscription submission on inscricao-edital-01.html correctly persists localStorage 'araguaina_inscricao' with taxa='R$ 160,00'; success modal 'Inscrição realizada!' shown. (2) minhas-inscricoes.html renders candidate/CPF/cargo/valor and exposes data-testid='pagar-inscricao' and 'imprimir-comprovante'. (3) pagamento.html displays real IDIB banner (img.logo-img -> /assets/idib-logo.png, naturalWidth=1024), QR PIX code renders, CPF/Vaga/Localidade/Protocolo/Valor R$ 160,00 all present, no R$ 0,00. (4) comprovante.html displays real IDIB banner AND real Prefeitura Araguaína emblem (img.emblem-img -> /assets/araguaina-logo.png, naturalWidth=1024, actual coat-of-arms visible), candidate data (Nome, CPF 058.980.390-58, Vaga BIOMEDICO, Localidade Araguaína/TO) filled, DADOS PARA PAGAMENTO QR present with Valor R$ 160,00, data-testid='print-pdf' present. (5) FALLBACK via localStorage (no URL params) works — comprovante is fully populated (Nome, CPF, Vaga, Localidade, protocolo P99X9, R$ 160,00) using araguaina_inscricao stored client-side. All reported bugs are FIXED.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Minor: on comprovante.html the E-mail field still shows '—' because e-mail is not passed via URL nor stored in localStorage; consider capturing candidate email during registration.",
+    "Info-only: on inscricao page, localStorage 'localidade' concatenated an unexpected suffix ('Araguaína/TO CONFORME A NECESSIDADE') coming from backend cargo description. Not blocking, but consider sanitising the localidade string before persistence."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "N/A (frontend-only test)", "frontend": "100%" },
+  "test_credentials": "N/A (public pages)",
+  "seed_data_creation": "Client-side localStorage 'araguaina_inscricao' seeded for the fallback test scenario.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Static pages served from /app/frontend/public. Assets at /assets/idib-logo.png (idib banner) and /assets/araguaina-logo.png (Prefeitura brasão) both return HTTP 200 and load as images (naturalWidth=1024). PIX QR endpoint POST /api/pix/generate takes 1-3s to respond; use up to 25s selector wait for '#cp-pay img' on comprovante and '#pg-qr img' on pagamento. For fallback tests, seed localStorage BEFORE page.goto (using an initial navigation to the same origin, then goto). E-mail field is intentionally '—' if not provided.",
+  "rca_of_the_issue": "Original bugs — fake CSS logo boxes, missing Prefeitura logo, empty candidate data, PIX R$ 0,00 — are resolved. Real PNG assets now referenced via <img class='logo-img'> and <img class='emblem-img'>; scripts read URL params and gracefully fall back to localStorage.araguaina_inscricao. Valor is derived from taxa='R$ 160,00' -> 160.0 sent to /api/pix/generate."
+}

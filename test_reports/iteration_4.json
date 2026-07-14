@@ -1,0 +1,21 @@
+{
+  "summary": "Verified cargo-info block on inscricao-edital-04.html and inscricao-edital-02.html. Dropdown #CMB_Cargo is selectable (click blocker only targets <a>). On initial load with value '-1' the block [data-testid=cargo-info] is hidden (display:none) with empty content. Selecting COD 04101 renders block with all expected fields (Localidade contains 'Araguaína/TO', Escolaridade 'ENSINO SUPERIOR', Remuneração 'R$ 5.000,00', Vagas '5', Vagas PCD '1', Cadastro reserva '5', Taxa 'R$ 160,00'). Switching to COD 04102 updates the block (Remuneração 'R$ 7.000,00'). Resetting to '--Selecione--' hides the block again. On edital-02, COD 02300 renders correctly with Remuneração 'R$ 3.107,57' and Taxa 'R$ 115,00'.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Cargo info block uses computed style display 'block'/'none' correctly and rebuilds innerHTML per change; no XSS since values are HTML-escaped via textContent."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A", "frontend": "100%"},
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "cargo-info feature verified working on both edital-04 (8 options incl. -1) and edital-02 (1 option + -1). Option value attributes are internal IDs (e.g., 16311); COD extraction uses option.textContent match on /COD\\s*(\\d+)/, so use select_option by value=<internal id> when scripting.",
+  "rca of the issue": "N/A - feature working as specified"
+}

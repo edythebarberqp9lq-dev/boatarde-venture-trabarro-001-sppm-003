@@ -1,0 +1,15 @@
+{
+  "ignorePatterns": [
+    "build/**",
+    "public/farpainel/**",
+    "public/farpapainel/**",
+    "node_modules/**"
+  ],
+  "globals": {
+    "WorkerGlobalScope": "readonly",
+    "__REACT_DEVTOOLS_GLOBAL_HOOK__": "readonly"
+  },
+  "rules": {
+    "no-undef": "off"
+  }
+}

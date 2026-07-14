@@ -1,0 +1,34 @@
+{
+  "summary": "Testei em navegador real (Playwright) o requisito 'botão AVANÇAR desabilitado até tudo válido' em /cadastro.html?c=01. RESULTADO: bug crítico — o botão NUNCA fica desabilitado, independentemente do preenchimento. Raiz: em cadastro.html linha 205 o botão não tem id ('<button type=\"submit\" class=\"btn-avancar\" data-testid=\"btn-avancar\">'), mas o validateForm() na linha 503 faz 'var btn = $(\"btn-avancar\")' (getElementById) e o if(btn) silencia a atribuição btn.disabled=!ok. Máscara de telefone, upper-case do Nome, autofill por CPF, busca CEP e o submit+redirect para /inscricao-edital-01.html funcionam corretamente.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "cadastro.html · botão AVANÇAR",
+        "issue": "Botão nunca fica desabilitado. HTML não expõe id='btn-avancar' (só data-testid), mas validateForm() usa document.getElementById('btn-avancar') e o guard 'if(btn){ btn.disabled=!ok }' faz o toggle virar no-op silencioso. Assim, mesmo com o formulário vazio ou com senhas diferentes, o botão fica clicável.",
+        "selector": "[data-testid=\"btn-avancar\"]",
+        "priority": "CRITICAL"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/backend/tests/test_cadastro_flow.py"],
+  "action_items": [
+    "CORREÇÃO (1 linha) em /app/frontend/public/cadastro.html linha 205: acrescentar id=\"btn-avancar\" no <button> — ex.: <button type=\"submit\" id=\"btn-avancar\" class=\"btn-avancar\" data-testid=\"btn-avancar\">AVANÇAR</button>. Alternativa: em validateForm() (linha 503) trocar var btn = $('btn-avancar'); por var btn = document.querySelector('[data-testid=\"btn-avancar\"]');",
+    "Depois de aplicar a correção, revalidar os 4 cenários: (1) load com form vazio => disabled=true; (2) preenchimento parcial => disabled=true; (3) senhas diferentes => disabled=true; (4) todos os campos válidos + senhas iguais => disabled=false e clique redireciona para /inscricao-edital-01.html."
+  ],
+  "critical_code_review_comments": [
+    "cadastro.html:503 — guard 'if(btn){...}' oculta bug: quando btn é null, todo o requisito de desabilitar o botão vira no-op silencioso. Melhor lançar/loggar quando o elemento crítico não existir para falhar cedo.",
+    "cadastro.html:205 — inconsistência entre o requisito ('id btn-avancar') e o HTML (só data-testid). Sugerido sempre expor id + data-testid quando o JS interno usa getElementById.",
+    "cadastro.html tem 603 linhas com JS embutido; extrair /js/cadastro.js facilita testes unitários e evita regressões deste tipo."
+  ],
+  "updated_files": ["/app/test_reports/iteration_2.json"],
+  "success_rate": {"backend": "n/a (não testado nesta rodada)", "frontend": "40% (2 de 5 asserções críticas passaram: máscara de telefone e upper-case; falharam: disabled inicial, disabled parcial, disabled em senha divergente)"},
+  "test_credentials": "Não aplicável para este teste (fluxo público).",
+  "seed_data_creation": "Nenhum dado novo criado. Reutilizado CPF 11144477735 (Maria Teste Silva) — a chamada de autofill em GET /api/cadastro/11144477735 respondeu 200 e preencheu nome/nascimento/escolaridade/etc.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "O bug é reproduzível 100%. Reproduzir: abrir /cadastro.html?c=01 e avaliar em console: document.querySelector('[data-testid=\"btn-avancar\"]').disabled — sempre false. Também document.getElementById('btn-avancar') retorna null (pois o botão não tem id). O submit por sua vez não valida disabled — ele só bloqueia via disabled do <button>, então clicar em AVANÇAR envia o form mesmo vazio (POST /api/track/registration + redirect para /inscricao-edital-01.html). Testes Playwright reproduzem: (1) doc.querySelector('[data-testid=btn-avancar]').disabled === false já no load; (2) permanece false com só o Nome digitado; (3) permanece false com senhas diferentes; (4) redirect funciona (T7 do log). Fluxo positivo (autofill por CPF, máscara telefone (63) 99464-6646, upper-case JOAO PEREIRA, CEP 77804020 -> Rua Gaúcha/Setor Central/Araguaína/TO, upload frente+verso PNG 70 bytes) funcionou normalmente.",
+  "rca of the issue": "RCA: o requisito depende de validateForm() atribuir btn.disabled. O código faz 'var btn = document.getElementById(\"btn-avancar\")' porém o HTML (linha 205) instancia o botão sem id, apenas com data-testid. Portanto btn é null e o bloco 'if (btn) { btn.disabled = !ok; }' silenciosamente não faz nada. Consequência: em toda validação (load, input, change) o botão permanece habilitado. Correção (1 linha): adicionar id=\"btn-avancar\" no <button> OU trocar $('btn-avancar') por document.querySelector('[data-testid=\"btn-avancar\"]')."
+}

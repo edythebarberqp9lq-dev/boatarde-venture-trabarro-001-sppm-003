@@ -1,0 +1,33 @@
+{
+  "summary": "Validated the two targeted changes on the donas inscricao portal: (1) Documento de Identificação uploads are hidden until a tipo_documento is picked, labels reflect the selected doc, and reverting to 'Selecione' hides & clears them again. (2) /sucesso.html file was physically removed from /app/frontend/public — after a successful POST /api/inscricoes/register the user is redirected to /home.html?cadastro=ok (no intermediate success page). Full end-to-end submission (uppercase name, DD/MM/AAAA mask, CEP autocomplete, celular mask, file uploads, submit) succeeded and the record persisted correctly in MongoDB and appears on GET /api/admin/inscriptions with the expected fields. Duplicate CPF returns 409.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_donas_inscricao_flow.py",
+    "/app/test_reports/pytest/donas_inscricao_flow.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Note: GET /sucesso.html returns HTTP 200 (not 404) because the CRA dev server falls back to the SPA index.html for any unknown route. The physical file has been removed and the content served is the minimal empty React shell (~1.8KB) — no 'Inscrição confirmada' modal. If a hard 404 is required, an explicit route/handler would be needed, but functionally the requirement (no success page) is met."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_donas_inscricao_flow.py"
+  ],
+  "success_rate": {
+    "backend": "100% (3/3 pytest)",
+    "frontend": "100% (22/22 UI assertions across doc-section & full E2E flow)"
+  },
+  "test_credentials": "Admin: donas / Seinao10@@. CPF de teste: 11144477735.",
+  "seed_data_creation": "Cleaned MongoDB collections inscricoes/cadastros and /app/backend/uploads/* before each run. Generated /tmp/f.png and /tmp/v.png (1x1 PNGs) for upload tests.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Regression tests live at /app/backend/tests/test_donas_inscricao_flow.py — cover register (200), duplicate CPF (409) and admin listing. Before running, clean: mongosh mongodb://localhost:27017/barcarena_db --eval 'db.inscricoes.deleteMany({}); db.cadastros.deleteMany({});' && rm -f /app/backend/uploads/*. The doc-section behavior is controlled by refreshDocSection() around line 572 in /app/frontend/public/cadastro.html; upload row = #doc-uploads-row; labels = .doc-label-frente / .doc-label-verso (textContent, no ':' suffix — the ':' after them is a static text node in the template).",
+  "rca_of_the_issue": "Both requested changes were already implemented correctly by the main agent: (1) refreshDocSection() toggles #doc-uploads-row.style.display based on #c-tipodoc.value and rewrites labels using docTipoLabels map {RG:'RG', CNH:'CNH', PASSAPORTE:'Passaporte'}; on empty it hides + clears inputs + previews. (2) Submit handler at line 720 redirects to '/home.html?cadastro=ok'; no sucesso.html exists in /app/frontend/public. Verified end-to-end with Playwright and pytest."
+}
