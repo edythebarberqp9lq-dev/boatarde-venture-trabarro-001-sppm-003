@@ -43,7 +43,8 @@
 
   /* ---- Cards de concurso: aproxima o botão INSCREVA-SE do texto ---- */
   section.concurso article.concurso.course-single { padding-bottom: 0 !important; margin-bottom: 4px !important; }
-  section.concurso article.concurso.course-single .course-description { margin-bottom: 0 !important; }
+  /* A .course-description tem altura FIXA de 190px em desktop — solta no mobile */
+  section.concurso article.concurso.course-single .course-description { height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important; margin-bottom: 0 !important; }
   section.concurso article.concurso.course-single .course-description p { margin-bottom: 6px !important; }
   section.concurso article.concurso:not(.course-single) { margin-top: 0 !important; padding-top: 0 !important; }
   /* Remove os <br> extras + .social-media vazio que ficam antes do botão em mobile */
