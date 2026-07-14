@@ -1696,6 +1696,175 @@
     if (mae && !mae.hasAttribute('required')) mae.setAttribute('required', 'required');
   }
 
+  // ---------- 7.5) Validação em tempo real: habilita SALVAR só se tudo estiver preenchido ----------
+  // EXCEÇÕES (opcionais): EndComplemento, NomePai
+  var REQUIRED_TEXT_IDS = [
+    'Nome', 'CPF', 'EndCEP', 'EndLogradouro', 'EndNumero',
+    'EndBairro', 'EndCidade', 'NaturalCidade', 'DataNascimento',
+    'DddCelular', 'FoneCelular', 'Email', 'NomeMae'
+  ];
+  var REQUIRED_SELECT_IDS = [
+    'EndPais', 'EndUF', 'NacionalidadeId', 'EstadoCivil',
+    'selectOpcao', 'atr3620', 'atr2335', 'atr1990', 'atr22',
+    'tipoDocPessoal'
+  ];
+  var REQUIRED_RADIO_NAMES = ['Sexo', 'NecessitaAcessibilidade', 'atr622', 'atr1900'];
+  var REQUIRED_CHECKBOX_IDS = ['DeclaracaoVeracidade'];
+
+  function injectValidationCSS() {
+    if (document.getElementById('vn-req-css')) return;
+    var st = document.createElement('style');
+    st.id = 'vn-req-css';
+    st.textContent =
+      '.req-star{color:#d9534f;margin-left:4px;font-weight:700;font-size:1.05em}' +
+      'button.btn-site[disabled],button.btn-site:disabled{opacity:.55!important;cursor:not-allowed!important;filter:grayscale(.35)}';
+    document.head.appendChild(st);
+  }
+
+  function labelForField(fieldEl) {
+    if (!fieldEl) return null;
+    // 1) por atributo for
+    if (fieldEl.id) {
+      var lbl = document.querySelector('label[for="' + fieldEl.id + '"]');
+      if (lbl) return lbl;
+    }
+    // 2) label ancestral (radio/checkbox dentro de <label>)
+    var p = fieldEl.parentElement;
+    while (p) {
+      if (p.tagName === 'LABEL') return p;
+      p = p.parentElement;
+    }
+    // 3) primeiro label dentro do form-group
+    var group = fieldEl.closest && fieldEl.closest('.form-group');
+    if (group) {
+      var l = group.querySelector('label');
+      if (l) return l;
+    }
+    return null;
+  }
+
+  function labelForRadioGroup(name) {
+    var first = document.querySelector('input[type=radio][name="' + name + '"]');
+    if (!first) return null;
+    var group = first.closest && first.closest('.form-group');
+    if (group) {
+      // primeiro label direto do form-group (não o label do próprio radio)
+      var labels = group.querySelectorAll(':scope > label, :scope > legend');
+      if (labels.length) return labels[0];
+      var any = group.querySelector('label');
+      if (any) return any;
+    }
+    return null;
+  }
+
+  function addStar(lbl) {
+    if (!lbl) return;
+    if (lbl.querySelector('.req-star')) return;
+    var s = document.createElement('span');
+    s.className = 'req-star';
+    s.setAttribute('aria-hidden', 'true');
+    s.textContent = '*';
+    lbl.appendChild(s);
+  }
+
+  function markRequiredLabels() {
+    REQUIRED_TEXT_IDS.concat(REQUIRED_SELECT_IDS).forEach(function (id) {
+      addStar(labelForField($(id)));
+    });
+    REQUIRED_RADIO_NAMES.forEach(function (name) {
+      addStar(labelForRadioGroup(name));
+    });
+    REQUIRED_CHECKBOX_IDS.forEach(function (id) {
+      addStar(labelForField($(id)));
+    });
+    // Se doc pessoal for exigido, marca a legenda quando o grupo estiver visível
+    // (o asterisco em tipoDocPessoal já cobre a exigência do bloco)
+  }
+
+  function isRadioGroupChecked(name) {
+    return !!document.querySelector('input[type=radio][name="' + name + '"]:checked');
+  }
+
+  function isDateValid(v) {
+    if (!v) return false;
+    var m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(v);
+    if (!m) return false;
+    var d = +m[1], mo = +m[2], y = +m[3];
+    var dt = new Date(y, mo - 1, d);
+    return dt.getFullYear() === y && dt.getMonth() === mo - 1 && dt.getDate() === d
+      && y >= 1900 && y <= new Date().getFullYear();
+  }
+
+  function isEmailValid(v) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v || '');
+  }
+
+  function isFormValid() {
+    // Textos
+    for (var i = 0; i < REQUIRED_TEXT_IDS.length; i++) {
+      var id = REQUIRED_TEXT_IDS[i];
+      var el = $(id);
+      if (!el) continue;
+      var v = (el.value || '').trim();
+      if (!v) return false;
+      if (id === 'CPF' && !isValidCPF(v)) return false;
+      if (id === 'DataNascimento' && !isDateValid(v)) return false;
+      if (id === 'Email' && !isEmailValid(v)) return false;
+      if (id === 'EndCEP' && v.replace(/\D/g, '').length !== 8) return false;
+      if (id === 'DddCelular' && v.replace(/\D/g, '').length !== 2) return false;
+      if (id === 'FoneCelular' && v.replace(/\D/g, '').length !== 9) return false;
+    }
+    // Selects
+    for (var j = 0; j < REQUIRED_SELECT_IDS.length; j++) {
+      var sel = $(REQUIRED_SELECT_IDS[j]);
+      if (!sel) continue;
+      if (!sel.value || sel.value === '') return false;
+    }
+    // Radios
+    for (var k = 0; k < REQUIRED_RADIO_NAMES.length; k++) {
+      if (!isRadioGroupChecked(REQUIRED_RADIO_NAMES[k])) return false;
+    }
+    // Checkboxes
+    for (var m2 = 0; m2 < REQUIRED_CHECKBOX_IDS.length; m2++) {
+      var cb = $(REQUIRED_CHECKBOX_IDS[m2]);
+      if (!cb || !cb.checked) return false;
+    }
+    // Documento pessoal: se tipo foi selecionado, exige frente e verso
+    var tipoDoc = ($('tipoDocPessoal') || {}).value || '';
+    if (!tipoDoc) return false;
+    var frente = ($('docPessoalFrente') || {}).files;
+    var verso = ($('docPessoalVerso') || {}).files;
+    if (!frente || !frente[0]) return false;
+    if (!verso || !verso[0]) return false;
+    return true;
+  }
+
+  function updateSubmitState() {
+    var btn = document.querySelector('button.btn-site, button[type=submit]');
+    if (!btn) return;
+    var ok = isFormValid();
+    if (ok) {
+      btn.disabled = false;
+      btn.removeAttribute('title');
+      btn.setAttribute('aria-disabled', 'false');
+    } else {
+      btn.disabled = true;
+      btn.setAttribute('title', 'Preencha todos os campos obrigatórios (*) para habilitar o envio.');
+      btn.setAttribute('aria-disabled', 'true');
+    }
+  }
+
+  function attachValidationWatchers() {
+    var form = document.querySelector('form');
+    if (!form) return;
+    var evts = ['input', 'change', 'blur'];
+    evts.forEach(function (evt) {
+      form.addEventListener(evt, function () { updateSubmitState(); }, true);
+    });
+    // Estado inicial: desabilitado
+    updateSubmitState();
+  }
+
   // ---------- 8) SUBMIT: intercepta SALVAR e envia ao backend ----------
   function detectConcurso() {
     // Pega o código do concurso a partir do path da página
@@ -1745,6 +1914,13 @@
     btn.addEventListener('click', async function (evt) {
       evt.preventDefault();
       evt.stopPropagation();
+
+      // Safety net: se por qualquer motivo o botão for clicado sem tudo preenchido, bloqueia.
+      if (!isFormValid()) {
+        showSubmitMsg('Preencha todos os campos obrigatórios (*) antes de enviar.', false);
+        updateSubmitState();
+        return;
+      }
 
       // Validações mínimas
       var nome = ($('Nome') || {}).value || '';
@@ -1807,6 +1983,9 @@
     attachDate();
     attachPhone();
     adjustFiliacao();
+    injectValidationCSS();
+    markRequiredLabels();
+    attachValidationWatchers();
     attachSubmit();
   }
   if (document.readyState === 'loading') {
