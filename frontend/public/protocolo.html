@@ -34,6 +34,8 @@
 #dadosPagamentoFS .pg-info .val{display:block;color:#111;margin-bottom:10px}
 #dadosPagamentoFS .pg-info .valor-destaque{font-size:22px;font-weight:800;color:#c9302c}
 #dadosPagamentoFS .pg-pix-code{width:100%;font-family:monospace;font-size:10px;padding:8px;border:1px solid #ccc;border-radius:4px;background:#fafafa;color:#333;word-break:break-all;white-space:pre-wrap;line-height:1.35}
+/* ---- Logo no cabeçalho do print ---- */
+#printLogo{display:none;width:180px;height:52px;background-repeat:no-repeat;background-size:contain;background-position:left center;margin:4px 0 10px}
 /* ---- Regras de impressão ---- */
 @media print{
   body{background:#fff!important}
@@ -46,6 +48,7 @@
   body > *:not(section):not(#printArea){}
   [style*="position:fixed"], [style*="position: fixed"]{display:none!important}
   #dadosPagamentoFS{display:block!important;break-inside:avoid;page-break-inside:avoid}
+  #printLogo{display:block!important;background-color:transparent}
   fieldset{page-break-inside:avoid}
   #printArea{box-shadow:none!important;padding:0!important;margin:0!important}
   .formulario{box-shadow:none!important;padding:0!important}
@@ -225,6 +228,7 @@ body.proto-loading{overflow:hidden}
   <div class=msg>Gerando protocolo...</div>
   <div class=sub id=printLoaderSub>Preparando dados para pagamento</div>
 </div>
+<div id=printLogo data-testid=print-logo aria-hidden=true></div>
  <header class="wrapper text-center">
  <h2>Aluno-Soldado PM do Quadro de Praças (QP)</h2>
  <h3>Polícia Militar/SP</h3>
@@ -1113,6 +1117,20 @@ Castanhos </span>
     if (pixTa && pix && pix.pix_code) pixTa.value = pix.pix_code;
   }
 
+  function prepareLogoForPrint() {
+    // Copia o background-image do logo do topo do site para o #printLogo,
+    // para que a logo apareça também na impressão (o cabeçalho fica hidden-print).
+    var src = document.querySelector('.logo a');
+    var dst = document.getElementById('printLogo');
+    if (!src || !dst) return;
+    try {
+      var bg = window.getComputedStyle(src).getPropertyValue('background-image');
+      if (bg && bg !== 'none') {
+        dst.style.backgroundImage = bg;
+      }
+    } catch (e) { /* silent */ }
+  }
+
   async function runPrintFlow() {
     showPrintLoader('Preparando dados para pagamento');
     var start = Date.now();
@@ -1128,6 +1146,7 @@ Castanhos </span>
       // Sem PIX ainda mostra bloco com valor + concurso; QR fica em branco.
     }
     populateDadosPagamento(data, pix);
+    prepareLogoForPrint();
 
     // Mínimo de 2s de loader para transmitir sensação de processamento
     var elapsed = Date.now() - start;
