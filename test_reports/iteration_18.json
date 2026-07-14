@@ -1,0 +1,32 @@
+{
+  "summary": "Frontend mobile testing of /home.html card layout (concurso cards PMES2601 and PMES2602). Verified date same-line rendering, ::after pseudo-elements for (início)/(fim), VAGAS on new line, and desktop layout preservation. Found gap regression on second card (PMES2602).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "article.concurso (PMES2602 - second card) mobile view",
+        "issue": "Gap between end of .course-description last <p> and .apply-to-it button is 142px on mobile (viewport 393x851 and 390x844). Requirement is <=90px. First card (PMES2601) is fine at 82px. The second card has a shorter description (single paragraph) causing the col-sm-8 article to end higher while the col-sm-4 button article renders below with a large empty vertical space. Likely due to residual min-height/padding on the description article or the button article top spacing on mobile.",
+        "selector": "article.concurso.course-single + article.concurso (second pair)",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Reduce vertical gap on second concurso card (PMES2602) in mobile view. Current gap is 142px; target <=90px. Likely need to zero out bottom padding/margin of article.concurso.course-single (or its inner .course-description) when description is short, or reduce top padding of the sibling article.concurso.col-sm-4 in @media (max-width:767px)."
+  ],
+  "critical_code_review_comments": [
+    "The 'card' UI is actually two sibling <article> elements (col-sm-8 + col-sm-4). Stacking on mobile can create variable gaps depending on description length. Consider wrapping both in a single container or setting explicit margin/padding overrides for the sibling article on mobile.",
+    "Using CSS ::after content for '(início)'/'(fim)' is a nice, non-invasive solution and correctly scoped inside @media (max-width:767px) — desktop unaffected."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A", "frontend": "83%"},
+  "test_credentials": "N/A",
+  "seed_data_creation": "None",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Verified on live URL: (1) Dates same line on mobile: fromTop==toTop for both cards. (2) ::after content = ' (início)' and ' (fim)' on mobile; 'none' on desktop (confirmed 1400x900). (3) VAGAS renders on new line below dates on mobile, floated on desktop. (4) Card1 gap=82px OK. Card2 gap=142px FAIL. All viewports tested: 393x851 Android, 390x844 iPhone, 1400x900 Desktop.",
+  "rca of the issue": "Second concurso card has short description text, so col-sm-8 article shrinks. But on mobile stack, the following col-sm-4 article (containing button) has its own top padding/margin, creating gap of 142px. Fix: in @media (max-width:767px) add rules like `article.concurso.col-sm-4 { padding-top: 0 !important; margin-top: 0 !important; }` and/or zero out article.concurso.course-single bottom padding/margin, plus ensure .course-description has no bottom margin."
+}

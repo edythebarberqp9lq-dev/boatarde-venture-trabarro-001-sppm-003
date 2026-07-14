@@ -40,6 +40,31 @@
   fieldset { padding: 8px 10px !important; }
   /* Ajusta padding lateral do container */
   .container-fluid, .container { padding-left: 12px !important; padding-right: 12px !important; }
+
+  /* ---- Cards de concurso: aproxima o botão INSCREVA-SE do texto ---- */
+  section.concurso article.concurso.course-single { padding-bottom: 0 !important; margin-bottom: 4px !important; }
+  section.concurso article.concurso.course-single .course-description { margin-bottom: 0 !important; }
+  section.concurso article.concurso.course-single .course-description p { margin-bottom: 6px !important; }
+  section.concurso article.concurso:not(.course-single) { margin-top: 0 !important; padding-top: 0 !important; }
+  /* Remove os <br> extras + .social-media vazio que ficam antes do botão em mobile */
+  section.concurso article.concurso:not(.course-single) > br,
+  section.concurso article.concurso:not(.course-single) .visible-xs,
+  section.concurso article.concurso:not(.course-single) .social-media { display: none !important; }
+  /* Botão INSCREVA-SE com altura enxuta */
+  .apply-to-it { height: 56px !important; line-height: 56px !important; padding: 0 60px 0 14px !important; margin-top: 0 !important; }
+  .apply-to-it .inscricao { line-height: 56px !important; }
+
+  /* ---- Datas de INSCRIÇÕES/VAGAS mais organizadas ----
+     No mobile queremos: linha 1 = "INSCRIÇÕES: 15/06 (início) — 15/07 (fim)"
+                        linha 2 = "VAGAS: 2.000"
+     Removemos qualquer float e forçamos block em cada <p>. */
+  .course-informations { display: block !important; }
+  .course-informations p { display: block !important; float: none !important; text-align: left !important; margin: 4px 0 !important; padding: 0 !important; width: auto !important; }
+  .apply { display: inline-block !important; white-space: nowrap !important; margin: 0 12px 0 0 !important; }
+  .apply.from::after { content: " (início)"; font-size: 11px; color: #666; font-weight: 400; margin-left: 2px; }
+  .apply.to::after   { content: " (fim)";    font-size: 11px; color: #666; font-weight: 400; margin-left: 2px; }
+  /* Bootstrap corta a descrição a 8/12 col. Em mobile, garante 100% da largura */
+  section.concurso article.col-xs-12 { width: 100% !important; float: none !important; }
 }
 /* iOS Safari: previne zoom ao focar inputs */
 @supports (-webkit-touch-callout: none) {
