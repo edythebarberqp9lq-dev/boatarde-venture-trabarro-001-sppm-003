@@ -887,6 +887,19 @@ Castanhos </span>
       }
     });
 
+    // Esconde colunas Bootstrap (col-sm-*, col-xs-*, col-md-*) cujo conteúdo
+    // visível se resume a form-groups escondidos, para evitar espaços fantasmas
+    // (ex.: DDI Celular vazio deixando DDD e Telefone deslocados)
+    document.querySelectorAll('#printArea [class*="col-sm-"], #printArea [class*="col-xs-"], #printArea [class*="col-md-"]').forEach(function (col) {
+      var innerGroups = col.querySelectorAll(':scope > .form-group');
+      if (!innerGroups.length) return;
+      var anyVisible = false;
+      innerGroups.forEach(function (g) {
+        if (g.style.display !== 'none') anyVisible = true;
+      });
+      if (!anyVisible) col.style.display = 'none';
+    });
+
     // Remove fieldsets que ficaram sem nenhum form-group visível
     document.querySelectorAll('#printArea fieldset').forEach(function (fs) {
       var anyVisible = false;
