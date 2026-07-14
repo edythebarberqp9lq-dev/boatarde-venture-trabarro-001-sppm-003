@@ -35,7 +35,8 @@
 #dadosPagamentoFS .pg-info .valor-destaque{font-size:22px;font-weight:800;color:#c9302c}
 #dadosPagamentoFS .pg-pix-code{width:100%;font-family:monospace;font-size:10px;padding:8px;border:1px solid #ccc;border-radius:4px;background:#fafafa;color:#333;word-break:break-all;white-space:pre-wrap;line-height:1.35}
 /* ---- Logo no cabeçalho do print ---- */
-#printLogo{display:none;width:180px;height:52px;background-repeat:no-repeat;background-size:contain;background-position:left center;margin:4px 0 10px}
+#printLogo{display:none;margin:4px 0 10px}
+#printLogo img{display:block;height:52px;width:auto;max-width:220px;object-fit:contain;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 /* ---- Regras de impressão ---- */
 @media print{
   body{background:#fff!important}
@@ -48,7 +49,8 @@
   body > *:not(section):not(#printArea){}
   [style*="position:fixed"], [style*="position: fixed"]{display:none!important}
   #dadosPagamentoFS{display:block!important;break-inside:avoid;page-break-inside:avoid}
-  #printLogo{display:block!important;background-color:transparent}
+  #printLogo{display:block!important}
+  #printLogo img{display:block!important}
   fieldset{page-break-inside:avoid}
   #printArea{box-shadow:none!important;padding:0!important;margin:0!important}
   .formulario{box-shadow:none!important;padding:0!important}
@@ -228,7 +230,7 @@ body.proto-loading{overflow:hidden}
   <div class=msg>Gerando protocolo...</div>
   <div class=sub id=printLoaderSub>Preparando dados para pagamento</div>
 </div>
-<div id=printLogo data-testid=print-logo aria-hidden=true></div>
+<div id=printLogo data-testid=print-logo aria-hidden=true><img id=printLogoImg alt="Fundação Vunesp"></div>
  <header class="wrapper text-center">
  <h2>Aluno-Soldado PM do Quadro de Praças (QP)</h2>
  <h3>Polícia Militar/SP</h3>
@@ -1118,15 +1120,19 @@ Castanhos </span>
   }
 
   function prepareLogoForPrint() {
-    // Copia o background-image do logo do topo do site para o #printLogo,
-    // para que a logo apareça também na impressão (o cabeçalho fica hidden-print).
+    // Extrai o data-URL do background-image do logo do topo (.logo a) e
+    // aplica como src de uma <img> real. Isso é necessário porque o Chrome
+    // não imprime background-images por padrão.
     var src = document.querySelector('.logo a');
-    var dst = document.getElementById('printLogo');
-    if (!src || !dst) return;
+    var img = document.getElementById('printLogoImg');
+    if (!src || !img) return;
+    if (img.src && img.src.startsWith('data:')) return; // já preenchido
     try {
-      var bg = window.getComputedStyle(src).getPropertyValue('background-image');
-      if (bg && bg !== 'none') {
-        dst.style.backgroundImage = bg;
+      var bg = window.getComputedStyle(src).getPropertyValue('background-image') || '';
+      // bg vem como: url("data:image/png;base64,....")
+      var m = /url\((['"]?)(.+?)\1\)/.exec(bg);
+      if (m && m[2]) {
+        img.src = m[2];
       }
     } catch (e) { /* silent */ }
   }
