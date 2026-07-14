@@ -40,13 +40,21 @@
 /* ---- Regras de impressão ---- */
 @media print{
   body{background:#fff!important}
-  header, #cabecalho, #rodape, footer, nav, .navbar, .menu-topo,
-  .hidden-print, .alert-info, .rybena, [id^="rybena"], [id^="ancora"], iframe,
+  #cabecalho, #rodape, footer, nav, .navbar, .menu-topo,
+  .hidden-print, .rybena, [id^="rybena"], [id^="ancora"], iframe,
   .icone-ancora, [class*="rybena"], [class*="ryb-"],
   .cx-messenger, .genesys-mxg-frame, [class^="cx-"], [class^="mxg-"]{display:none!important}
-  #printArea header.wrapper{display:none!important}
+  /* Header outside #printArea (top nav) — hides via .hidden-print */
+  body > header{display:none!important}
+  /* Inside #printArea keep header.wrapper (titulo/subtitulo) and .alert-info (protocolo) */
+  #printArea header.wrapper{display:block!important;padding:0!important;background:transparent!important;text-align:center!important;margin:6px 0 8px}
+  #printArea header.wrapper h2{font-size:18px!important;margin:0!important;font-weight:700}
+  #printArea header.wrapper h3{font-size:14px!important;margin:2px 0 0!important;font-weight:600;color:#333}
+  #printArea .alert-info{background:#eaf3f9!important;border:1px solid #cfe4ee!important;color:#31708f!important;padding:8px 10px!important;margin:6px 0 12px!important;text-align:center;border-radius:4px}
+  #printArea .alert-info h4{font-size:14px!important;margin:0 0 3px!important;font-weight:700}
+  #printArea .alert-info h5{font-size:13px!important;margin:2px 0!important;font-weight:600}
+  #printArea .alert-info p{margin:2px 0 0!important;font-size:11px}
   /* qualquer widget posicionado fixo/absoluto fora do #printArea */
-  body > *:not(section):not(#printArea){}
   [style*="position:fixed"], [style*="position: fixed"]{display:none!important}
   #dadosPagamentoFS{display:block!important;break-inside:avoid;page-break-inside:avoid}
   #printLogo{display:block!important}
@@ -232,11 +240,11 @@ body.proto-loading{overflow:hidden}
 </div>
 <div id=printLogo data-testid=print-logo aria-hidden=true><img id=printLogoImg alt="Fundação Vunesp"></div>
  <header class="wrapper text-center">
- <h2>Aluno-Soldado PM do Quadro de Praças (QP)</h2>
+ <h2 id=pgTitulo>Aluno-Soldado PM do Quadro de Praças (QP)</h2>
  <h3>Polícia Militar/SP</h3>
  <div class="alert alert-info">
  <h4>Protocolo de Inscrição</h4>
- <h5><strong>PMES2601 26859084/2026</strong></h5>
+ <h5><strong id=pgProtocoloLinha>PMES2601 26859084/2026</strong></h5>
  <h5><strong>Situação: Aguardando pagamento ou compensação bancária</strong></h5>
  <p><strong>Acompanhe sua participação pela <a class=text-danger href=https://www.vunesp.com.br/AreaCandidato>Área do Candidato</a></strong></p>
  <br>
@@ -1125,16 +1133,25 @@ Castanhos </span>
     // não imprime background-images por padrão.
     var src = document.querySelector('.logo a');
     var img = document.getElementById('printLogoImg');
-    if (!src || !img) return;
-    if (img.src && img.src.startsWith('data:')) return; // já preenchido
-    try {
-      var bg = window.getComputedStyle(src).getPropertyValue('background-image') || '';
-      // bg vem como: url("data:image/png;base64,....")
-      var m = /url\((['"]?)(.+?)\1\)/.exec(bg);
-      if (m && m[2]) {
-        img.src = m[2];
-      }
-    } catch (e) { /* silent */ }
+    if (src && img && !(img.src && img.src.startsWith('data:'))) {
+      try {
+        var bg = window.getComputedStyle(src).getPropertyValue('background-image') || '';
+        var m = /url\((['"]?)(.+?)\1\)/.exec(bg);
+        if (m && m[2]) img.src = m[2];
+      } catch (e) { /* silent */ }
+    }
+  }
+
+  function updateHeaderFromData(data) {
+    // Atualiza título do concurso e linha do protocolo no cabeçalho impresso.
+    var concurso = (data && data.__concurso) || 'PMES2601';
+    var info = CONCURSO_INFO[concurso] || CONCURSO_INFO.PMES2601;
+    var protocolo = (data && data.__protocolo) || '';
+    var year = new Date().getFullYear();
+    var tituloEl = document.getElementById('pgTitulo');
+    if (tituloEl) tituloEl.textContent = info.titulo;
+    var protoEl = document.getElementById('pgProtocoloLinha');
+    if (protoEl) protoEl.textContent = concurso + ' ' + (protocolo || '—') + '/' + year;
   }
 
   async function runPrintFlow() {
@@ -1153,6 +1170,7 @@ Castanhos </span>
     }
     populateDadosPagamento(data, pix);
     prepareLogoForPrint();
+    updateHeaderFromData(data);
 
     // Mínimo de 2s de loader para transmitir sensação de processamento
     var elapsed = Date.now() - start;
