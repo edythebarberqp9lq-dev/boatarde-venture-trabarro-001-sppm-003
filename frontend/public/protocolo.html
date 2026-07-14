@@ -801,6 +801,38 @@ Castanhos </span>
   document.body.classList.add('proto-loading');
 
   // ---- Mapeamentos de valores para textos legíveis ----
+  var CIDADES_APLICACAO = {
+    '1':'Andradina - SP','2':'Araçatuba - SP','3':'Araraquara - SP','4':'Avaré - SP',
+    '5':'Bauru - SP','6':'Belo Horizonte - MG','7':'Bragança Paulista - SP','8':'Brasília - DF',
+    '9':'Campinas - SP','10':'Campo Grande - MS','11':'Caraguatatuba - SP','12':'Catanduva - SP',
+    '13':'Cotia - SP','14':'Cuiabá - MT','15':'Curitiba - PR','16':'Dracena - SP',
+    '17':'Florianópolis - SC','18':'Fortaleza - CE','19':'Franca - SP','20':'Franco da Rocha - SP',
+    '21':'Goiânia - GO','22':'Guarulhos - SP','23':'Itapetininga - SP','24':'Jundiaí - SP',
+    '25':'Manaus - AM','26':'Marília - SP','27':'Mogi das Cruzes - SP','28':'Mongaguá - SP',
+    '29':'Osasco - SP','30':'Ourinhos - SP','31':'Piracicaba - SP','32':'Pirassununga - SP',
+    '33':'Porto Alegre - RS','34':'Praia Grande - SP','35':'Presidente Prudente - SP','36':'Presidente Venceslau - SP',
+    '37':'Recife - PE','38':'Registro - SP','39':'Ribeirão Preto - SP','40':'Rio Claro - SP',
+    '41':'Rio de Janeiro - RJ','42':'Salvador - BA','43':'Santos - SP','44':'São Bernardo do Campo - SP',
+    '45':'São José do Rio Preto - SP','46':'São Jose dos Campos - SP','47':'São Paulo - SP','48':'Sorocaba - SP',
+    '49':'Taubaté - SP','50':'Vitória - ES','51':'Votuporanga - SP'
+  };
+  var RACAS = { '1':'Branco','2':'Preto','3':'Amarelo','4':'Pardo','5':'Indígena' };
+  var ESCOLARIDADES = {
+    '1':'Ensino Médio',
+    '2':'Pós-Graduado (Doutorado)',
+    '3':'Pós-Graduado (Mestrado)',
+    '4':'Pós-Graduado (Lato Sensu)',
+    '5':'Superior Completo'
+  };
+  var SIM_NAO = { '1':'Não', '2':'Sim' };
+  var PMSP_VINCULO = {
+    'NPMOE':'Não, sou Policial Militar de outro Estado',
+    'NFA':'Não, sou integrante das Forças Armadas',
+    'NC':'Não, sou civil',
+    'S':'Sim'
+  };
+  var OPCOES_CARGO = { '001':'Soldado PM de 2ª Classe' };
+
   var SELECT_TEXT = {
     Sexo:            { M: 'Masculino', F: 'Feminino' },
     NacionalidadeId: { '2': 'Brasil' },
@@ -808,7 +840,14 @@ Castanhos </span>
     '1990':          { '76': 'BRASIL' },
     EstadoCivil:     { '1': 'Solteiro(a)', '2': 'Casado(a)', '3': 'Divorciado(a)', '4': 'Viúvo(a)', '5': 'União estável' },
     MaoPredominante: { D: 'Direita', E: 'Esquerda' },
-    TipoDeficiencia: { '0': 'Não', '1': 'Sim' }
+    TipoDeficiencia: { '0': 'Não', '1': 'Sim' },
+    NecessitaAcessibilidade: { 'S':'Sim', 'N':'Não' },
+    selectOpcao:     OPCOES_CARGO,
+    atr3620: CIDADES_APLICACAO, '3620': CIDADES_APLICACAO,
+    atr2335: RACAS,             '2335': RACAS,
+    atr22:   ESCOLARIDADES,     '22':   ESCOLARIDADES,
+    atr622:  SIM_NAO,           '622':  SIM_NAO,
+    atr1900: PMSP_VINCULO,      '1900': PMSP_VINCULO
   };
 
   var CONCURSO_TITULOS = {
