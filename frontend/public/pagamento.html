@@ -184,6 +184,13 @@ body.pg-loading{overflow:hidden}
 <div class="container clearfix">
  <div class="col-xs-12 col-sm-7 container-form">
 <div id=printArea class=bg-white>
+<div class="hidden-print" style="padding:10px 0 4px">
+  <button type=button id=pgVoltarBtn data-testid=pg-voltar-btn
+    class="btn btn-default"
+    style="border:1px solid #ccc;background:#f5f5f5;color:#333;font-weight:600;padding:8px 16px;border-radius:4px;display:inline-flex;align-items:center;gap:8px">
+    <i class="fas fa-arrow-left"></i> VOLTAR
+  </button>
+</div>
 <header class="wrapper text-center">
 <h2 id=pgConcursoTitulo>Aluno-Soldado PM do Quadro de Praças (QP)</h2>
 <h3>Polícia Militar/SP</h3>
@@ -578,6 +585,16 @@ Abra o app do seu banco, escaneie o QR Code ou copie o código abaixo.
     document.getElementById('pgLocal').textContent = local || 'A definir (será divulgado no edital)';
   }
 
+  function bindVoltarButton() {
+    var btn = document.getElementById('pgVoltarBtn');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      // Dados do candidato ficam preservados em sessionStorage.protocoloData
+      // (a página protocolo.html lê essa chave). Basta redirecionar.
+      window.location.href = '/protocolo.html';
+    });
+  }
+
   function bindCopyButton() {
     var btn = document.getElementById('pgCopyBtn');
     var ta = document.getElementById('pgPixCode');
@@ -621,6 +638,7 @@ Abra o app do seu banco, escaneie o QR Code ou copie o código abaixo.
     fillCandidato(data || {});
     updateAtualizado();
     bindCopyButton();
+    bindVoltarButton();
 
     var concurso = (data && data.__concurso) || 'PMES2601';
     var protocolo = (data && data.__protocolo) || '';
