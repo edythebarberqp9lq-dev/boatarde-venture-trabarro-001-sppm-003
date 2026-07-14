@@ -1,0 +1,21 @@
+{
+  "summary": "Frontend E2E testing of inscricao-pmsp2601.html (full flow) and inscricao-pmsp2602.html (initial state). All 4 requested features verified as WORKING: (1) SALVAR button starts disabled with correct tooltip, (2) 28 red asterisks '*' rendered on required labels while EndComplemento and NomePai correctly have NO asterisk, (3) after filling all required fields the button becomes enabled, (4) submit returns 200 with protocolo '98B3AF1F5D', sessionStorage.protocoloData is populated with __concurso='PMES2601' and __protocolo='98B3AF1F5D', page auto-redirects to /protocolo.html within ~1.2s, and /protocolo.html renders the protocolo header 'PMES2601 98B3AF1F5D/2026' plus the user-entered data from sessionStorage.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "inscricao-pmsp2601.html is ~2012 lines — consider extracting the inline validation/submit JS into a shared external module (already exists inscricao-helper.js) to keep 2601 and 2602 in sync and reduce duplication.",
+    "Console shows two CSP warnings blocking Cloudflare beacon/challenge scripts — cosmetic, does not affect functionality but could be cleaned up in the CSP header."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped)", "frontend": "100%"},
+  "seed_data_creation": "Created two tiny dummy JPGs at /tmp/testfiles/{frente,verso}.jpg for docPessoal uploads.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Full happy-path form submission from inscricao-pmsp2601.html works end-to-end: POST /api/inscricao/submit -> 200 {ok:true, protocolo}, sessionStorage.protocoloData set with __concurso/__protocolo, redirect to /protocolo.html which reads those keys and displays the data. 2602 was verified only for initial disabled state + asterisks (identical structure to 2601)."
+}

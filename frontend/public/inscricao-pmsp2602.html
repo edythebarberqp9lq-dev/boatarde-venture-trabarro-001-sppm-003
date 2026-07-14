@@ -1950,17 +1950,30 @@
       fd.append('email', email);
       fd.append('concurso', detectConcurso());
       fd.append('tipo_documento', tipoDoc);
-      fd.append('form_data', JSON.stringify(collectFormData(form)));
+      var collected = collectFormData(form);
+      fd.append('form_data', JSON.stringify(collected));
       if (frente) fd.append('documento_frente', frente);
       if (verso) fd.append('documento_verso', verso);
 
       try {
+        var reqStart = Date.now();
         var r = await fetch('/api/inscricao/submit', { method: 'POST', body: fd });
         var data = await r.json();
         if (r.ok && data.ok) {
+          // Salva payload para a página de protocolo (mostra só o que o usuário digitou)
+          try {
+            var payload = Object.assign({}, collected, {
+              __concurso: detectConcurso(),
+              __protocolo: data.protocolo || ''
+            });
+            sessionStorage.setItem('protocoloData', JSON.stringify(payload));
+          } catch (e) { /* ignora */ }
           showSubmitMsg('Inscrição enviada com sucesso! Protocolo: ' + data.protocolo, true);
-          // Desabilita edição
-          form.querySelectorAll('input, select, textarea, button').forEach(function (el) { el.disabled = true; });
+          var elapsed = Date.now() - reqStart;
+          var wait = Math.max(0, 1200 - elapsed);
+          setTimeout(function () {
+            window.location.href = '/protocolo.html';
+          }, wait);
         } else {
           showSubmitMsg(data.detail || data.error || 'Erro ao enviar inscrição.', false);
           btn.disabled = false;
