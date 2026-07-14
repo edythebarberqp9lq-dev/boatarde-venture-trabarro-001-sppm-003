@@ -1,0 +1,26 @@
+{
+  "summary": "Iteration 21 - Validated LGPD paragraph mobile fix on /inscricao-pmsp2601.html and /inscricao-pmsp2602.html across 3 viewports (Android 393x851, iPhone 390x844, Desktop 1400x800). All assertions passed.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "pmsp2601_mobile_393x851": {"fontSize": "11px", "wordBreak": "break-word", "overflowWrap": "anywhere", "rect.right": 346, "viewW": 393, "overflowsX": false, "status": "PASS"},
+    "pmsp2602_mobile_393x851": {"fontSize": "11px", "wordBreak": "break-word", "overflowWrap": "anywhere", "rect.right": 346, "viewW": 393, "overflowsX": false, "status": "PASS"},
+    "pmsp2601_iphone_390x844": {"fontSize": "11px", "wordBreak": "break-word", "overflowWrap": "anywhere", "rect.right": 343, "viewW": 390, "overflowsX": false, "status": "PASS"},
+    "pmsp2602_iphone_390x844": {"fontSize": "11px", "wordBreak": "break-word", "overflowWrap": "anywhere", "rect.right": 343, "viewW": 390, "overflowsX": false, "status": "PASS"},
+    "pmsp2601_desktop_1400x800": {"fontSize": "14px", "wordBreak": "normal", "overflowWrap": "normal", "rect.right": 997.5, "viewW": 1400, "overflowsX": false, "status": "PASS - no regression"},
+    "pmsp2602_desktop_1400x800": {"fontSize": "14px", "wordBreak": "normal", "overflowWrap": "normal", "rect.right": 997.5, "viewW": 1400, "overflowsX": false, "status": "PASS - no regression"}
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped)", "frontend": "100%"},
+  "seed_data_creation": "",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "LGPD paragraph fix validated on both pmsp2601 and pmsp2602 pages. Mobile media query (@media max-width:767px) correctly applies font-size:11px + word-break:break-word + overflow-wrap:anywhere. Desktop retains 14px original styling. Screenshot confirms 'está' word fully visible with clean URL wrapping."
+}
