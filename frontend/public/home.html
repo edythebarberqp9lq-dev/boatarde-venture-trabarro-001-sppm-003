@@ -103,10 +103,8 @@
 <!-- ============= Modal de aviso de encerramento (só na home) ============= -->
 <div id="avisoEncerramentoOverlay" role="dialog" aria-modal="true" aria-labelledby="avisoTitulo" style="position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:2147483000;padding:16px;font-family:'Open Sans',Arial,sans-serif;-webkit-font-smoothing:antialiased">
   <div style="background:#fff;max-width:460px;width:100%;border-radius:20px;padding:28px 26px 24px;box-shadow:0 20px 60px rgba(0,0,0,.35);text-align:center;position:relative;animation:avisoIn .22s ease-out">
-    <div style="width:74px;height:74px;border-radius:50%;background:#e8f7ec;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;border:2px solid #26a049">
-      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path d="M12 2L1 22h22L12 2zm0 15.5a1.25 1.25 0 110 2.5 1.25 1.25 0 010-2.5zm-1.1-2.9V9.5h2.2v5.1h-2.2z" fill="#26a049"/>
-      </svg>
+    <div style="width:110px;height:110px;border-radius:50%;background:#e8f7ec;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;border:2px solid #26a049;padding:12px;box-sizing:border-box">
+      <img id="avisoLogo" alt="Fundação Vunesp" style="max-width:100%;max-height:100%;object-fit:contain;display:block">
     </div>
     <h2 id="avisoTitulo" style="color:#26a049;font-size:24px;font-weight:800;margin:0 0 14px;letter-spacing:-.2px">Aviso importante</h2>
     <p id="avisoMensagem" style="color:#3a3a3a;font-size:15px;line-height:1.55;margin:0 0 24px;padding:0 4px">
@@ -140,7 +138,18 @@
     var btn     = document.getElementById('avisoOkBtn');
     var diaEl   = document.getElementById('avisoDiaSemana');
     var dataEl  = document.getElementById('avisoData');
+    var logoImg = document.getElementById('avisoLogo');
     if (!overlay || !btn) return;
+
+    // Extrai a logo Vunesp do background do header (.logo a) e aplica no <img> do modal
+    try {
+      var logoA = document.querySelector('.logo a');
+      if (logoA && logoImg) {
+        var bg = window.getComputedStyle(logoA).getPropertyValue('background-image') || '';
+        var m = /url\((['"]?)(.+?)\1\)/.exec(bg);
+        if (m && m[2]) logoImg.src = m[2];
+      }
+    } catch (e) {}
 
     // Preenche data de hoje
     var hoje = new Date();
