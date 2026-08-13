@@ -109,8 +109,7 @@
     <h2 id="avisoTitulo" style="color:#c9302c;font-size:24px;font-weight:800;margin:0 0 14px;letter-spacing:-.2px">Aviso importante</h2>
     <p id="avisoMensagem" style="color:#3a3a3a;font-size:15px;line-height:1.55;margin:0 0 24px;padding:0 4px">
       As inscrições para o <strong>Concurso Público da Polícia Militar de São Paulo</strong> encerram-se
-      nesta <strong id="avisoDiaSemana">hoje</strong>,
-      <strong id="avisoData">—</strong>, às <strong>23h59</strong> (horário de Brasília).
+      <strong>sexta-feira, dia 21 de agosto</strong>, às <strong>23h59</strong> (horário de Brasília).
     </p>
     <button id="avisoOkBtn" data-testid="aviso-ok-btn" type="button"
       style="background:#c9302c;color:#fff;border:0;padding:12px 40px;border-radius:999px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 6px 14px rgba(201,48,44,.28);transition:transform .12s ease, box-shadow .12s ease, background .12s">
@@ -136,8 +135,6 @@
   function boot() {
     var overlay = document.getElementById('avisoEncerramentoOverlay');
     var btn     = document.getElementById('avisoOkBtn');
-    var diaEl   = document.getElementById('avisoDiaSemana');
-    var dataEl  = document.getElementById('avisoData');
     var logoImg = document.getElementById('avisoLogo');
     if (!overlay || !btn) return;
 
@@ -150,14 +147,6 @@
         if (m && m[2]) logoImg.src = m[2];
       }
     } catch (e) {}
-
-    // Preenche data de hoje
-    var hoje = new Date();
-    var diasSem = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
-    var meses   = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
-    var dia = hoje.getDate();
-    diaEl.textContent  = diasSem[hoje.getDay()];
-    dataEl.textContent = dia + ' de ' + meses[hoje.getMonth()];
 
     overlay.style.display = 'flex';
     // trava scroll do body enquanto o modal está aberto
@@ -413,41 +402,7 @@ INSCREVA-SE </span>
  </article>
  </section>
 
- <section class="row concurso corner-ribbon-areaprojeto">
- <span class="ribbon ribbon-areaprojeto">
- <span>PMES2602</span>
- </span>
- <article class="concurso course-single col-xs-12 col-sm-8">
- <h3 class=course-title>
- Concurso | <strong>Quadro de Oficiais de Estado-Maior - Cadete PM</strong>
- </h3>
- <div class=course-informations>
- <p>
- <strong> Inscrições: </strong>
- <span class="apply from"> 01/06 </span>
- <span class="apply to"> 15/07 </span>
- </p>
- <p>
- <strong>Vagas:</strong> 200
- </p>
- </div>
- <div class=course-description>
- <p>
- O concurso da Polícia Militar/SP é para 200 vagas de cadete PM, com remuneração básica inicial de R$ 5.460,65.
- </p>
- </div>
- </article>
-
- <article class="concurso col-xs-12 col-sm-4">
- <br><br class="visible-xs sf-hidden">
- <div class="social-media clearfix">
- </div>
- <a class=apply-to-it href="/inscricao-pmsp2602.html" data-testid="inscreva-se-pmsp2602">
- <span class=inscricao>
-INSCREVA-SE </span>
- </a>
- </article>
- </section>
+ 
  
  <section id=aplicativos class="row concurso user-dashboard-course-item clearfix">
  <div class="course-tabs col-xs-12">
