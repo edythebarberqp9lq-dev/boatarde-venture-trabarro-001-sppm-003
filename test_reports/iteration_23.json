@@ -1,0 +1,25 @@
+{
+  "summary": "Date consistency sweep across inscription flow. Verified 5 pages (home.html, inscricao-pmsp2601.html, inscricao-pmsp2602.html, protocolo.html, pagamento.html) contain NO '15/07' or 'julho' in visible text. home.html card .apply.to shows '21/08' and #avisoMensagem contains exact string 'sexta-feira, dia 21 de agosto'.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A", "frontend": "100%"},
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Date change from 15/07 -> 21/08 fully propagated. home.html .apply.to='21/08'; #avisoMensagem contains 'sexta-feira, dia 21 de agosto'. All 5 pages have has_15_07=false and julho_matches=[]. pagamento.html requires wait_until='domcontentloaded' (networkidle times out due to PIX generation loader).",
+  "verification_details": {
+    "home.html": {"apply_to": "21/08", "aviso": "As inscrições para o Concurso Público da Polícia Militar de São Paulo encerram-se sexta-feira, dia 21 de agosto, às 23h59 (horário de Brasília).", "has_15_07": false, "julho": []},
+    "inscricao-pmsp2601.html": {"has_15_07": false, "julho": []},
+    "inscricao-pmsp2602.html": {"has_15_07": false, "julho": []},
+    "protocolo.html": {"has_15_07": false, "julho": []},
+    "pagamento.html": {"has_15_07": false, "julho": []}
+  }
+}
